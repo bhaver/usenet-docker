@@ -1,7 +1,7 @@
 version: '2'
 services:
     nginx-proxy:
-        image: jwilder/nginx-proxy:latest
+        image: jwilder/nginx-proxy
         container_name: nginx-proxy
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
@@ -9,159 +9,175 @@ services:
             - 80:80
         restart: always
 
-    sabnzbd:
-        image: linuxserver/sabnzbd:latest
-        container_name: sabnzbd
-        volumes:
-            - /data_directory_path/config/sabnzbd:/config
-            - /data_directory_path/Downloads/complete:/downloads
-            - /data_directory_path/Downloads/incomplete:/incomplete-downloads
-        ports:
-            - 8080:8080
-        env_file: uidgid.env
-        environment:
-            - EDGE=1
-            - VIRTUAL_HOST=sabnzbd.HOSTNAME.com
-            - VIRTUAL_PORT=8080
-        restart: always
-
     couchpotato:
         image: linuxserver/couchpotato:latest
         container_name: couchpotato
         volumes:
-            - /data_directory_path/config/couchpotato:/config
-            - /data_directory_path/Downloads/complete:/downloads
-            - /data_directory_path/Movies:/movies
+            - /storage/app-data/couchpotato:/config
+            - /storage/.downloads/complete:/storage/.downloads/complete
+            - /storage/movies:/storage/movies
         ports:
             - 5050:5050
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=couchpotato.HOSTNAME.com
+            - VIRTUAL_HOST=couchpotato.vitalogy.duckdns.org
             - VIRTUAL_PORT=5050
+            - PUID=1000
+            - PGID=1000
         restart: always
 
     plex:
         image: linuxserver/plex
         container_name: plex
+        network_mode: host
         volumes:
-            - /data_directory_path/config/plex:/config
-            - /data_directory_path/TV:/data/tvshows
-            - /data_directory_path/Movies:/data/movies
-        ports:
-            - 32469:32469
-            - 32400:32400
-            - 32401:32401
-            - 3005:3005
-            - 8324:8324
-            - 1900:1900/udp
-            - 32410:32410/udp
-            - 32412:32412/udp
-            - 32413:32413/udp
-            - 32414:32414/udp
-        env_file: uidgid.env
+            - /storage/app-data/plex:/config
+            - /storage/tv:/storage/tv
+            - /storage/movies:/storage/movies
+            - /storage:/storage
+            - /storage/tmp:/tmp
         environment:
-            - VIRTUAL_HOST=plex.HOSTNAME.com
+            - VIRTUAL_HOST=plex.vitalogy.duckdns.org
             - VIRTUAL_PORT=32400
-        restart: always
+            - PUID=1000
+            - PGID=1000
+            - version=docker
+        restart: unless-stopped
 
     sonarr:
         image: linuxserver/sonarr
         container_name: sonarr
         volumes:
-            - /data_directory_path/config/sonarr:/config
+            - /storage/app-data/sonarr:/config
             - /etc/localtime:/etc/localtime:ro
-            - /data_directory_path/TV:/tv
-            - /data_directory_path/Downloads/complete:/downloads
+            - /storage/tv:/storage/tv
+            - /storage/.downloads/complete:/storage/.downloads/complete
         ports:
             - 8989:8989
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=sonarr.HOSTNAME.com
+            - VIRTUAL_HOST=sonarr.vitalogy.duckdns.org
             - VIRTUAL_PORT=8989
-        restart: always
+            - PUID=1000
+            - PGID=1000
+        restart: unless-stopped
 
     plexpy:
         image: linuxserver/plexpy
         container_name: plexpy
         volumes:
-            - /data_directory_path/config/plexpy:/config
+            - /storage/app-data/plexpy:/config
             - /etc/localtime:/etc/localtime:ro
-            - /data_directory_path/config/plex/Library/Application Support/Plex Media Server/Logs:/logs:ro
+            - /storage/app-data/plex/Library/Application Support/Plex Media Server/Logs:/logs:ro
         ports:
             - 8181:8181
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=plexpy.HOSTNAME.com
+            - VIRTUAL_HOST=plexpy.vitalogy.duckdns.org
             - VIRTUAL_PORT=8181
-        restart: always
+            - PUID=1000
+            - PGID=1000
+        restart: unless-stopped
 
     nzbhydra:
         image: linuxserver/hydra
         container_name: nzbhydra
         volumes:
-            - /data_directory_path/config/nzbhydra:/config
-            - /data_directory_path/Downloads:/downloads
+            - /storage/app-data/nzbhydra:/config
+            - /storage/.downloads/complete:/storage/.downloads/complete
             - /etc/localtime:/etc/localtime:ro
         ports:
             - 5075:5075
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=nzbhydra.HOSTNAME.com
+            - VIRTUAL_HOST=nzbhydra.vitalogy.duckdns.org
             - VIRTUAL_PORT=5075
+            - PUID=1000
+            - PGID=1000
         restart: always
 
     muximux:
         image: linuxserver/muximux
         container_name: muximux
         volumes:
-            - /data_directory_path/config/muximux:/config
+            - /storage/app-data/muximux:/config
             - /etc/localtime:/etc/localtime:ro
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=muximux.HOSTNAME.com
+            - VIRTUAL_HOST=muximux.vitalogy.duckdns.org
+            - PUID=1000
+            - PGID=1000
         restart: always
 
     radarr:
         image: linuxserver/radarr
         container_name: radarr
         volumes:
-            - /data_directory_path/config/radarr:/config
-            - /data_directory_path/Movies:/movies
-            - /data_directory_path/Downloads/complete:/downloads
+            - /storage/app-data/radarr:/config
+            - /storage/movies:/storage/movies
+            - /storage/.downloads:/storage/.downloads
             - /etc/localtime:/etc/localtime:ro
         ports:
             - 7878:7878
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=radarr.HOSTNAME.com
+            - VIRTUAL_HOST=radarr.vitalogy.duckdns.org
             - VIRTUAL_PORT=7878
+            - PUID=1000
+            - PGID=1000
         restart: always
 
     ombi:
         image: linuxserver/ombi
         container_name: ombi
         volumes:
-            - /data_directory_path/config/ombi:/config
+            - /storage/app-data/ombi:/config
             - /etc/localtime:/etc/localtime:ro
         ports:
             - 3579:3579
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=ombi.HOSTNAME.com
+            - VIRTUAL_HOST=ombi.vitalogy.duckdns.org
             - VIRTUAL_PORT=3579
+            - PUID=1000
+            - PGID=1000
         restart: always
 
     nzbget:
         image: linuxserver/nzbget
         container_name: nzbget
         volumes:
-            - /data_directory_path/config/nzbget:/config
-            - /data_directory_path/Downloads/complete:/complete
-            - /data_directory_path/Downloads:/downloads
+            - /storage/app-data/nzbget:/config
+            - /storage/.downloads/complete:/storage/.downloads/complete
+            - /storage/.downloads:/storage/.downloads
+            - /storage:/storage
         ports:
             - 6789:6789
-        env_file: uidgid.env
         environment:
-            - VIRTUAL_HOST=nzbget.HOSTNAME.com
+            - VIRTUAL_HOST=nzbget.vitalogy.duckdns.org
             - VIRTUAL_PORT=6789
+            - PUID=1000
+            - PGID=1000
         restart: always
+
+    duckdns:
+      image: linuxserver/duckdns
+      container_name: duckdns
+      restart: always
+      environment:
+        - TZ=America/Toronto
+        - PUID=1000
+        - PGID=1000
+        - TOKEN=5beb6ead-c7cf-4974-960e-7644e5ea1088
+        - SUBDOMAINS=vitalogy
+        - LOG_FILE=true
+      volumes:
+        - /storage/app-data/duckdns:/config
+    
+    telly:
+      image: tellytv/telly
+      ports:
+        - "6077:6077"
+      environment:
+        - TZ=America/Toronto
+        - TELLY_IPTV_PLAYLIST=http://aaaa.agency:83/get.php?username=7040440332&password=yE0d72gaU5&output=ts&type=m3u_plus
+        - TELLY_FILTER_REGEX=''
+        - TELLY_WEB_LISTEN_ADDRESS=telly:6077
+        - TELLY_IPTV_STREAMS=1
+        - TELLY_DISCOVERY_FRIENDLYNAME=Tuner1
+        - TELLY_DISCOVERY_DEVICEID=12345678
+      command: -web.base=telly:6077
+      restart: unless-stopped
